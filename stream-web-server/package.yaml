@@ -1,0 +1,60 @@
+name:                stream-web-server
+version:             0.1.0.0
+github:              "DKurilo/stream-web-server"
+license:             BSD3
+author:              "Dima Kurilo"
+maintainer:          "dkurilo@gmail.com"
+copyright:           "Dima Kurilo"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/DKurilo/stream-web-server#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- hw-kafka-client >= 3.1.2 && < 3.2
+- stm >= 2.5 && < 2.6
+- containers >= 0.6.2 && < 0.7
+- uuid >= 1.3.13 && < 1.4
+- text >= 1.2.2.1 && < 1.3
+- bytestring >= 0.10.10 && < 0.11
+- word8 >= 0.1.3 && < 0.2
+- network >= 3.1.1 && < 3.2
+- network-uri >= 2.6 && < 2.8
+- HTTP >= 4000.3.14 && < 4000.4
+- time >= 1.9.3 && < 1.10
+
+library:
+  source-dirs: src
+
+executables:
+  stream-web-server:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -O2
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - stream-web-server
+
+tests:
+  stream-web-server-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - stream-web-server
