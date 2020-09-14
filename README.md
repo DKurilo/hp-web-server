@@ -4,7 +4,7 @@ Just testing concepts.
 How to start check [here](./infra/README.md)  
 
 Docker containers for this project:  
-https://hub.docker.com/repository/docker/dkurilo/stream-web-server
+https://hub.docker.com/repository/docker/dkurilo/stream-web-server  
 https://hub.docker.com/repository/docker/dkurilo/page-builder
 
 Useful links:  
