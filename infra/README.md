@@ -56,12 +56,7 @@ kubectl apply -f ./kafka-service.yml
 ```
 kubectl apply -f ./kafka-broker.yml
 ```
-5. start port forwarding to be able to request kafka service
-```
-kubectl port-forward service/kafka-service 9092:9092 &
-```
-`&` here to start it in background
-6. test it with `kafkacat`
+5. test it with `kafkacat`
 In a first terminal we are running consumer:
 ```
 kafkacat -L -b 127.0.0.1:9092 -t topic-test -C

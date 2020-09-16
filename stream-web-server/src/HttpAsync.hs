@@ -13,13 +13,13 @@ import           Data.Monoid                 ((<>))
 import           Data.Time.Clock             (NominalDiffTime (..),
                                               UTCTime (..), addUTCTime,
                                               getCurrentTime)
-import           Data.UUID                   (UUID, toText)
+import           Data.UUID                   (UUID)
 import           Data.UUID.V4                (nextRandom)
-import           Debug.Trace                 (trace)
 import           Network.HTTP
 import           Network.Socket
 import           Network.URI
 import qualified Queue                       as Q
+import           Types
 
 type SessionID = UUID
 type SessionIDGen = IO SessionID
@@ -63,14 +63,15 @@ mkSharedSessionIDGen :: IO (TVar SessionIDGen)
 mkSharedSessionIDGen = newTVarIO nextRandom
 
 type Listener = SessionID -> Request B.ByteString -> IO ()
-runListenerAsync :: (SessionsPool sp) => TVar SessionIDGen -> Timeout -> TVar sp -> Listener -> IO ()
-runListenerAsync tgen timeout tsp listener = do
-    lsock <- socket AF_INET Stream defaultProtocol
-    bind lsock (SockAddrInet 8080 $ tupleToHostAddress (127, 0, 0, 1))
-    listen lsock 10
+runListenerAsync :: (SessionsPool sp) => Port -> TVar SessionIDGen -> Timeout -> TVar sp -> Listener -> IO ()
+runListenerAsync port tgen timeout tsp listener = do
+    addr <- resolve Nothing (show port)
+    sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
+    bind sock $ addrAddress addr
+    listen sock 5
     forever $ do
-      (csock, _) <- accept lsock
-      hs <- socketConnection "" 8080 csock
+      (csock, _) <- accept sock
+      hs <- socketConnection "" port csock
       req <- receiveHTTP hs
       case req of
         Left _ -> do
@@ -110,7 +111,7 @@ runCleanerAsync delay tsp genErr = forever $ do
     srs <- atomically $
         do
             sp <- readTVar tsp
-            let (srs', sp') = (if size sp > 0 then trace ("map size: " <> (show . size) sp) else id) $ removeOutdated now sp
+            let (srs', sp') = removeOutdated now sp
             writeTVar tsp sp'
             return srs'
     forM_ srs $ \sr -> forkIO . genErr $ sr
@@ -121,3 +122,11 @@ genErr503 (sid, responder) = responder $ Response (5, 0, 3) "Service Unavailable
                                                   ]
                                                   msg
     where msg = "Sorry! Try again later\nSession ID: " <> (pack . show) sid <> "\n"
+
+resolve :: Maybe HostName -> ServiceName -> IO AddrInfo
+resolve mbhost port = do
+    let hints = defaultHints {
+            addrFlags = [AI_PASSIVE]
+          , addrSocketType = Stream
+          }
+    head <$> getAddrInfo (Just hints) mbhost (Just port)

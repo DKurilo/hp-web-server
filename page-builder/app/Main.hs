@@ -2,19 +2,29 @@
 module Main where
 
 import           Builder
-import           Consumer       as C
+import           Consumer           as C
+import           Data.Maybe         (fromMaybe)
+import           Data.Text          (pack)
 import           Kafka.Consumer
 import           Producer
+import           System.Environment (lookupEnv)
 import           Types
 
-brokerAddress :: BrokerAddress
-brokerAddress = BrokerAddress "127.0.0.1:9092"
+brokerAddress :: IO BrokerAddress
+brokerAddress = do
+   addr <- pack . fromMaybe "127.0.0.1" <$> lookupEnv "KAFKA_HOST"
+   port <- pack . fromMaybe "9092" <$> lookupEnv "KAFKA_PORT"
+   (return . BrokerAddress) (addr <> ":" <> port)
 
-consumerGroupId :: ConsumerGroupId
-consumerGroupId = ConsumerGroupId "stream_server_group"
+consumerGroupId :: IO ConsumerGroupId
+consumerGroupId = ConsumerGroupId . pack . fromMaybe "page_builder_group" <$> lookupEnv "PAGE_BUILDER_GROUP"
 
-builderTopic :: BuilderTopic
-builderTopic = "builder"
+builderTopic :: IO BuilderTopic
+builderTopic = pack . fromMaybe "builder" <$> lookupEnv "PAGE_BUILDER_TOPIC"
 
 main :: IO ()
-main = C.runConsumer brokerAddress consumerGroupId builderTopic $ sendResponse brokerAddress . fmap buildPage . parseMessage
+main = do
+    ba <- brokerAddress
+    bt <- builderTopic
+    cgid <- consumerGroupId
+    C.runConsumer ba cgid bt $ sendResponse ba . fmap buildPage . parseMessage

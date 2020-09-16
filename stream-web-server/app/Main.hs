@@ -5,43 +5,69 @@ import           Consumer
 import           Control.Concurrent          (forkFinally)
 import           Control.Concurrent.STM.TVar (TVar (..), modifyTVar', newTVarIO,
                                               readTVar)
+import           Control.Monad               (join, (=<<))
 import           Control.Monad.STM           (atomically, check)
-import           Data.Text                   (Text)
+import           Data.Maybe                  (fromMaybe)
+import           Data.Text                   (Text, pack)
+import           Data.Time.Clock             (NominalDiffTime)
+import           Data.UUID                   (toText)
+import           Data.UUID.V4                (nextRandom)
 import           HttpAsync
 import           Kafka.Consumer
 import           Producer
+import           System.Environment          (lookupEnv)
+import           Text.Read                   (readMaybe)
 import           Types
 
-brokerAddress :: BrokerAddress
-brokerAddress = BrokerAddress "127.0.0.1:9092"
+brokerAddress :: IO BrokerAddress
+brokerAddress = do
+   addr <- pack . fromMaybe "127.0.0.1" <$> lookupEnv "KAFKA_HOST"
+   port <- pack . fromMaybe "9092" <$> lookupEnv "KAFKA_PORT"
+   (return . BrokerAddress) (addr <> ":" <> port)
 
-consumerGroupId :: ConsumerGroupId
-consumerGroupId = ConsumerGroupId "stream_server_group"
+consumerGroupId :: IO ConsumerGroupId
+consumerGroupId = ConsumerGroupId . pack . fromMaybe "stream_web_server_group" <$> lookupEnv "STREAM_WEB_SERVER_GROUP"
 
-serverTopic :: ServerTopic
-serverTopic = "server_1"
+builderTopic :: IO BuilderTopic
+builderTopic = pack . fromMaybe "builder" <$> lookupEnv "PAGE_BUILDER_TOPIC"
 
-builderTopic :: BuilderTopic
-builderTopic = "builder"
+serverTopic :: IO ServerTopic
+serverTopic =  toText <$> nextRandom
 
-requestTimeout :: HttpAsync.Timeout
-requestTimeout = 8
+serverPort :: IO Port
+serverPort = do
+    mbPortString <- lookupEnv "STREAM_WEB_SERVER_PORT"
+    (return . fromMaybe 8080) (readMaybe =<< mbPortString)
 
-cleanerDelay :: Int
-cleanerDelay = 500
+requestTimeout :: IO HttpAsync.Timeout
+requestTimeout = do
+    mbTimeoutString <- lookupEnv "REQUEST_TIMEOUT"
+    (return . fromMaybe 60) (fromInteger <$> (readMaybe =<< mbTimeoutString))
+
+cleanerDelay :: IO Int
+cleanerDelay = do
+    mbDelayString <- lookupEnv "CLEANER_DELAY"
+    (return . fromMaybe 500) (readMaybe =<< mbDelayString)
 
 main :: IO ()
 main = do
+    ba <- brokerAddress
+    cgid <- consumerGroupId
+    bt <- builderTopic
+    st <- serverTopic
+    port <- serverPort
+    timeout <- requestTimeout
+    delay <- cleanerDelay
     gen <- mkSharedSessionIDGen
     sessions <- mkSharedPool
     done <- newTVarIO (3 :: Int)
     let finishProc _ = atomically $ modifyTVar' done (\x -> x - 1)
-    let listenerApp = runListenerAsync gen requestTimeout sessions $ sendRequest brokerAddress builderTopic serverTopic
+    let listenerApp = runListenerAsync port gen timeout sessions $ sendRequest ba bt st
     _ <- forkFinally listenerApp finishProc
     let responder = responseAsync sessions
-    let responderApp = runResponderAsync brokerAddress consumerGroupId serverTopic responder
+    let responderApp = runResponderAsync ba cgid st responder
     _ <- forkFinally responderApp finishProc
-    let cleanerApp = runCleanerAsync cleanerDelay sessions genErr503
+    let cleanerApp = runCleanerAsync delay sessions genErr503
     _ <- forkFinally cleanerApp finishProc
     atomically $
         do

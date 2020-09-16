@@ -14,12 +14,13 @@ WORKDIR /opt/app
 
 RUN apt-get update && apt-get install -y \
   ca-certificates \
-  libgmp-dev
+  libgmp-dev \
+  librdkafka-dev
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY health-check.sh /usr/local/bin/health-check.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 COPY --from=build /opt/app .
 
 CMD ["/opt/app/stream-web-server"]
-
