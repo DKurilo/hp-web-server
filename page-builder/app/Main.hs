@@ -5,6 +5,9 @@ import           Builder
 import           Consumer           as C
 import           Data.Maybe         (fromMaybe)
 import           Data.Text          (pack)
+import           Data.Text.Encoding (encodeUtf8)
+import           Data.UUID          (toText)
+import           Data.UUID.V4       (nextRandom)
 import           Kafka.Consumer
 import           Producer
 import           System.Environment (lookupEnv)
@@ -22,9 +25,13 @@ consumerGroupId = ConsumerGroupId . pack . fromMaybe "page_builder_group" <$> lo
 builderTopic :: IO BuilderTopic
 builderTopic = pack . fromMaybe "builder" <$> lookupEnv "PAGE_BUILDER_TOPIC"
 
+pbId :: IO PageBuilderId
+pbId =  encodeUtf8 . toText <$> nextRandom
+
 main :: IO ()
 main = do
     ba <- brokerAddress
     bt <- builderTopic
     cgid <- consumerGroupId
-    C.runConsumer ba cgid bt $ sendResponse ba . fmap buildPage . parseMessage
+    pb <- pbId
+    C.runConsumer ba cgid bt $ sendResponse ba . fmap (buildPage . (pmpagebuilderid pb <>)) . parseMessage

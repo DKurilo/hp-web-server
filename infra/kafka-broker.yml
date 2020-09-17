@@ -29,6 +29,6 @@ spec:
         - name: KAFKA_BROKER_ID
           value: "0"
         - name: KAFKA_CREATE_TOPICS
-          value: builder:1:1
+          value: builder:10:2
         - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
           value: "true"

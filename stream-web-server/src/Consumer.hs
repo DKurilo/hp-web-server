@@ -50,6 +50,7 @@ processMessages responder kafka = do
                  case fmap ((\(x, y) -> (fromASCIIBytes x, B.tail y)) . B.break isSpace) mbmsg of
                    Just (Just sid, msg) -> responder sid $
                        Response (2, 0, 0) "OK" [ Header HdrContentLength (show . (+1) . B.length $ msg)
+                                               , Header HdrConnection "close"
                                                ] (msg <> "\n")
                    Just (Nothing, msg)  -> putStrLn $ "Wrong SID: " <> show msg
                    Nothing  -> putStrLn "Wrong message"

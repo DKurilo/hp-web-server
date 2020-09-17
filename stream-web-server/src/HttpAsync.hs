@@ -68,7 +68,7 @@ runListenerAsync port tgen timeout tsp listener = do
     addr <- resolve Nothing (show port)
     sock <- socket (addrFamily addr) (addrSocketType addr) (addrProtocol addr)
     bind sock $ addrAddress addr
-    listen sock 5
+    listen sock 1024
     forever $ do
       (csock, _) <- accept sock
       hs <- socketConnection "" port csock
@@ -116,12 +116,12 @@ runCleanerAsync delay tsp genErr = forever $ do
             return srs'
     forM_ srs $ \sr -> forkIO . genErr $ sr
 
-genErr503 :: (SessionID, Responder) -> IO ()
-genErr503 (sid, responder) = responder $ Response (5, 0, 3) "Service Unavailable"
-                                                  [ Header HdrContentLength (show . B.length $ msg)
-                                                  ]
-                                                  msg
-    where msg = "Sorry! Try again later\nSession ID: " <> (pack . show) sid <> "\n"
+genErr503 :: B.ByteString -> (SessionID, Responder) -> IO ()
+genErr503 suffix (sid, responder) = responder $ Response (5, 0, 3) "Service Unavailable"
+                                                         [ Header HdrContentLength (show . B.length $ msg)
+                                                         ]
+                                                         msg
+    where msg = "Sorry! Try again later\nSession ID: " <> (pack . show) sid <> "\n" <> suffix <> "\n"
 
 resolve :: Maybe HostName -> ServiceName -> IO AddrInfo
 resolve mbhost port = do

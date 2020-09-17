@@ -9,6 +9,7 @@ import           Control.Monad               (join, (=<<))
 import           Control.Monad.STM           (atomically, check)
 import           Data.Maybe                  (fromMaybe)
 import           Data.Text                   (Text, pack)
+import           Data.Text.Encoding          (encodeUtf8)
 import           Data.Time.Clock             (NominalDiffTime)
 import           Data.UUID                   (toText)
 import           Data.UUID.V4                (nextRandom)
@@ -67,7 +68,7 @@ main = do
     let responder = responseAsync sessions
     let responderApp = runResponderAsync ba cgid st responder
     _ <- forkFinally responderApp finishProc
-    let cleanerApp = runCleanerAsync delay sessions genErr503
+    let cleanerApp = runCleanerAsync delay sessions (genErr503 ("Server Topic: " <> encodeUtf8 st))
     _ <- forkFinally cleanerApp finishProc
     atomically $
         do
