@@ -22,7 +22,8 @@ In the current derectory there are four files.
 1. `zookeper.yml` to start zookeeper. Kafka needs zookeeper as underlying service.
 2. `layer2-dockerce.yml` configuration for metallb. I found this configuration on [this site](https://medium.com/@JockDaRock/kubernetes-metal-lb-for-docker-for-mac-windows-in-10-minutes-23e22f54d1c8). This article contains one [response](https://medium.com/p/23e22f54d1c8/responses/show) and this response is very important.
 3. `kafka-service.yml` contains service for kafka, it has type `LoadBalancer` we want to use.
-4. `kafka-broker.yml` contains description for kafka broker that should be started.
+4. `kafka-broker0.yml` contains description for kafka broker that should be started. It will work with web server.
+5. `kafka-broker1.yml` contains description for kafka broker that should be started. It will work with page builder.
 
 Config files I found [here](https://dzone.com/articles/ultimate-guide-to-installing-kafka-docker-on-kuber) it's slightly outdated but still good.
 
