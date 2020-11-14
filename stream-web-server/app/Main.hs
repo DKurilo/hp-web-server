@@ -3,14 +3,11 @@ module Main where
 
 import           Consumer
 import           Control.Concurrent          (forkFinally)
-import           Control.Concurrent.STM.TVar (TVar (..), modifyTVar', newTVarIO,
-                                              readTVar)
-import           Control.Monad               (join, (=<<))
+import           Control.Concurrent.STM.TVar (modifyTVar', newTVarIO, readTVar)
 import           Control.Monad.STM           (atomically, check)
 import           Data.Maybe                  (fromMaybe)
-import           Data.Text                   (Text, pack)
+import           Data.Text                   (pack)
 import           Data.Text.Encoding          (encodeUtf8)
-import           Data.Time.Clock             (NominalDiffTime)
 import           Data.UUID                   (toText)
 import           Data.UUID.V4                (nextRandom)
 import           HttpAsync

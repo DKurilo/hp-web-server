@@ -1,11 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Producer (sendResponse) where
 
-import           Control.Exception     (bracket)
-import           Control.Monad         (forM_)
-import qualified Data.ByteString       as B
-import           Data.ByteString.Char8 (pack)
-import           Data.Text.Encoding    (decodeUtf8)
+import           Control.Exception  (bracket)
+import           Control.Monad      (forM_)
+import qualified Data.ByteString    as B
+import           Data.Text.Encoding (decodeUtf8)
 import           Kafka.Producer
 import           Types
 

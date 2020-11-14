@@ -4,12 +4,11 @@ module HttpAsync where
 import           Control.Concurrent          (forkIO, threadDelay)
 import           Control.Concurrent.STM.TVar (TVar, modifyTVar', newTVarIO,
                                               readTVar, readTVarIO, writeTVar)
-import           Control.Monad               (forM_, forever, (>>=))
+import           Control.Monad               (forM_, forever)
 import           Control.Monad.STM           (atomically)
 import qualified Data.ByteString             as B
 import           Data.ByteString.Char8       (pack)
 import qualified Data.Map.Strict             as Map
-import           Data.Monoid                 ((<>))
 import           Data.Time.Clock             (NominalDiffTime (..),
                                               UTCTime (..), addUTCTime,
                                               getCurrentTime)
@@ -17,7 +16,6 @@ import           Data.UUID                   (UUID)
 import           Data.UUID.V4                (nextRandom)
 import           Network.HTTP
 import           Network.Socket
-import           Network.URI
 import qualified Queue                       as Q
 import           Types
 

@@ -22,7 +22,6 @@ module Types
   ) where
 
 import           Data.ByteString (ByteString)
-import           Data.Semigroup
 import           Data.Text       (Text)
 
 type InputMessage = ByteString

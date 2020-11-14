@@ -3,16 +3,14 @@ module Consumer
     ( runResponderAsync
     ) where
 
-import           Control.Exception     (bracket)
-import           Control.Monad         (forever, join, (>>=))
-import           Data.ByteString       as B (break, length, tail)
-import           Data.ByteString.Char8 (pack)
-import           Data.UUID             (fromASCIIBytes)
-import           Data.Word8            (isSpace)
+import           Control.Exception (bracket)
+import           Control.Monad     (forever)
+import           Data.ByteString   as B (break, length, tail)
+import           Data.UUID         (fromASCIIBytes)
+import           Data.Word8        (isSpace)
 import           HttpAsync
 import           Kafka.Consumer
-import           Network.HTTP          (Header (..), HeaderName (..),
-                                        Response (..))
+import           Network.HTTP      (Header (..), HeaderName (..), Response (..))
 import           Types
 
 -- consumer properties

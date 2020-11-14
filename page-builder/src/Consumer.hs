@@ -6,7 +6,7 @@ module Consumer
   ) where
 
 import           Control.Exception (bracket)
-import           Control.Monad     (forever, join, liftM2, (>>=))
+import           Control.Monad     (forever)
 import qualified Data.ByteString   as B
 import           Data.Word8        (isSpace)
 import           Kafka.Consumer

@@ -20,13 +20,13 @@ instance Queue ImplicitQueue where
 
     head (Shallow Zero)       = Nothing
     head (Shallow (One x))    = Just x
-    head (Deep (One x) m r)   = Just x
-    head (Deep (Two x y) m r) = Just x
+    head (Deep (One x) _ _)   = Just x
+    head (Deep (Two x _) _ _) = Just x
 
     tail (Shallow Zero) = Nothing
-    tail (Shallow (One x)) = Just empty
-    tail (Deep (Two x y) m r) = Just $ Deep (One y) m r
-    tail (Deep (One x) m r)
+    tail (Shallow (One _)) = Just empty
+    tail (Deep (Two _ y) m r) = Just $ Deep (One y) m r
+    tail (Deep (One _) m r)
         | isEmpty m = Just $ Shallow r
         | otherwise = Just $ Deep (Two y z) m' r
         where (Just (y,z)) = head m
